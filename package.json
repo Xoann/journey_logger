@@ -1,0 +1,18 @@
+{
+  "name": "journey-logger",
+  "version": "0.1.0",
+  "description": "A small, local-first task time logger with terminal charts.",
+  "type": "module",
+  "bin": {
+    "journey": "./bin/journey.js"
+  },
+  "scripts": {
+    "test": "node --test",
+    "journey": "node ./bin/journey.js"
+  },
+  "keywords": ["time-tracking", "cli", "productivity"],
+  "license": "MIT",
+  "engines": {
+    "node": ">=18"
+  }
+}
