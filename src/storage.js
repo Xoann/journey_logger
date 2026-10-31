@@ -22,7 +22,33 @@ export function load(path = dataPath()) {
   return data;
 }
 
+export function ensureEntryIds(data) {
+  const used = new Set();
+  for (const entry of data.entries) {
+    if (entry.id === undefined) continue;
+    if (!Number.isSafeInteger(entry.id) || entry.id < 1 || used.has(entry.id)) {
+      throw new Error('Could not read data file: entry IDs must be unique positive integers.');
+    }
+    used.add(entry.id);
+  }
+  if (data.nextEntryId !== undefined && (!Number.isSafeInteger(data.nextEntryId) || data.nextEntryId < 1)) {
+    throw new Error('Could not read data file: nextEntryId must be a positive integer.');
+  }
+  const highestId = [...used].reduce((highest, id) => Math.max(highest, id), 0);
+  let nextId = Math.max(data.nextEntryId ?? 1, highestId + 1);
+  for (const entry of data.entries) {
+    if (entry.id === undefined) {
+      while (used.has(nextId)) nextId++;
+      entry.id = nextId++;
+      used.add(entry.id);
+    }
+  }
+  data.nextEntryId = nextId;
+  return data;
+}
+
 export function save(data, path = dataPath()) {
+  ensureEntryIds(data);
   mkdirSync(dirname(path), { recursive: true });
   const temp = `${path}.tmp`;
   writeFileSync(temp, `${JSON.stringify(data, null, 2)}\n`, 'utf8');

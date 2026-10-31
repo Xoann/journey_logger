@@ -37,8 +37,8 @@ function label(day) {
   return `${day.toLocaleString('en', { month: 'short' })} ${day.getDate()}`;
 }
 
-export function cumulativeChart(entries, days = 30) {
-  const end = localDay();
+export function cumulativeChart(entries, days = 30, endDate = null) {
+  const end = localDay(endDate ? `${endDate}T12:00:00` : new Date());
   const start = shiftDay(end, -(days - 1));
   const dates = Array.from({ length: days }, (_, index) => shiftDay(start, index));
   const totals = totalsByDay(entries);
@@ -55,8 +55,8 @@ export function cumulativeChart(entries, days = 30) {
   ].join('\n');
 }
 
-export function historyCumulativeChart(entries, width = 52) {
-  if (!entries.length) return cumulativeChart(entries, 30);
+export function historyCumulativeChart(entries, width = 52, endDate = null) {
+  if (!entries.length) return cumulativeChart(entries, 30, endDate);
   const dates = entries.map(entry => localDay(`${entry.date}T00:00:00`));
   const start = new Date(Math.min(...dates));
   const end = new Date(Math.max(...dates));
@@ -79,10 +79,10 @@ export function historyCumulativeChart(entries, width = 52) {
   ].join('\n');
 }
 
-export function heatmap(entries, weeks = 16, enabled = true) {
+export function heatmap(entries, weeks = 16, enabled = true, endDate = null) {
   const today = localDay();
-  const latestEntry = entries.length ? new Date(Math.max(...entries.map(entry => localDay(`${entry.date}T00:00:00`)))) : today;
-  const end = shiftDay(latestEntry, 6 - latestEntry.getDay()); // Sunday after the newest entry
+  const latestEntry = endDate ? localDay(`${endDate}T12:00:00`) : entries.length ? new Date(Math.max(...entries.map(entry => localDay(`${entry.date}T00:00:00`)))) : today;
+  const end = shiftDay(latestEntry, 6 - (latestEntry.getDay() + 6) % 7); // Sunday of the displayed week
   const start = shiftDay(end, -(weeks * 7 - 1));
   const totals = totalsByDay(entries);
   const maxMinutes = Math.max(0, ...Object.values(totals));
